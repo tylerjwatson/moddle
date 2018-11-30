@@ -1,17 +1,12 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = Properties;
 /**
  * A utility that gets and sets properties of model elements.
  *
  * @param {Model} model
  */
-function Properties(model) {
+export default function Properties(model) {
   this.model = model;
 }
+
 
 /**
  * Sets a named property on the target element.
@@ -21,7 +16,7 @@ function Properties(model) {
  * @param {String} name
  * @param {Object} value
  */
-Properties.prototype.set = function (target, name, value) {
+Properties.prototype.set = function(target, name, value) {
 
   var property = this.model.getPropertyDescriptor(target, name);
 
@@ -58,7 +53,7 @@ Properties.prototype.set = function (target, name, value) {
  *
  * @return {Object}
  */
-Properties.prototype.get = function (target, name) {
+Properties.prototype.get = function(target, name) {
 
   var property = this.model.getPropertyDescriptor(target, name);
 
@@ -76,6 +71,7 @@ Properties.prototype.get = function (target, name) {
   return target[propertyName];
 };
 
+
 /**
  * Define a property on the target element
  *
@@ -83,23 +79,25 @@ Properties.prototype.get = function (target, name) {
  * @param  {String} name
  * @param  {Object} options
  */
-Properties.prototype.define = function (target, name, options) {
+Properties.prototype.define = function(target, name, options) {
   Object.defineProperty(target, name, options);
 };
+
 
 /**
  * Define the descriptor for an element
  */
-Properties.prototype.defineDescriptor = function (target, descriptor) {
+Properties.prototype.defineDescriptor = function(target, descriptor) {
   this.define(target, '$descriptor', { value: descriptor });
 };
 
 /**
  * Define the model for an element
  */
-Properties.prototype.defineModel = function (target, model) {
+Properties.prototype.defineModel = function(target, model) {
   this.define(target, '$model', { value: model });
 };
+
 
 function isUndefined(val) {
   return typeof val === 'undefined';

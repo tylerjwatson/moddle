@@ -1,18 +1,19 @@
-'use strict';
+import {
+  pick,
+  assign,
+  forEach,
+  bind
+} from 'min-dash';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = DescriptorBuilder;
+import {
+  parseName as parseNameNs
+} from './ns';
 
-var _minDash = require('min-dash');
-
-var _ns = require('./ns');
 
 /**
  * A utility to build element descriptors.
  */
-function DescriptorBuilder(nameNs) {
+export default function DescriptorBuilder(nameNs) {
   this.ns = nameNs;
   this.name = nameNs.name;
   this.allTypes = [];
@@ -21,8 +22,18 @@ function DescriptorBuilder(nameNs) {
   this.propertiesByName = {};
 }
 
-DescriptorBuilder.prototype.build = function () {
-  return (0, _minDash.pick)(this, ['ns', 'name', 'allTypes', 'allTypesByName', 'properties', 'propertiesByName', 'bodyProperty', 'idProperty']);
+
+DescriptorBuilder.prototype.build = function() {
+  return pick(this, [
+    'ns',
+    'name',
+    'allTypes',
+    'allTypesByName',
+    'properties',
+    'propertiesByName',
+    'bodyProperty',
+    'idProperty'
+  ]);
 };
 
 /**
@@ -32,7 +43,7 @@ DescriptorBuilder.prototype.build = function () {
  * @param {Number} [idx]
  * @param {Boolean} [validate=true]
  */
-DescriptorBuilder.prototype.addProperty = function (p, idx, validate) {
+DescriptorBuilder.prototype.addProperty = function(p, idx, validate) {
 
   if (typeof idx === 'boolean') {
     validate = idx;
@@ -50,7 +61,8 @@ DescriptorBuilder.prototype.addProperty = function (p, idx, validate) {
   }
 };
 
-DescriptorBuilder.prototype.replaceProperty = function (oldProperty, newProperty, replace) {
+
+DescriptorBuilder.prototype.replaceProperty = function(oldProperty, newProperty, replace) {
   var oldNameNs = oldProperty.ns;
 
   var props = this.properties,
@@ -59,7 +71,9 @@ DescriptorBuilder.prototype.replaceProperty = function (oldProperty, newProperty
 
   if (oldProperty.isId) {
     if (!newProperty.isId) {
-      throw new Error('property <' + newProperty.ns.name + '> must be id property ' + 'to refine <' + oldProperty.ns.name + '>');
+      throw new Error(
+        'property <' + newProperty.ns.name + '> must be id property ' +
+        'to refine <' + oldProperty.ns.name + '>');
     }
 
     this.setIdProperty(newProperty, false);
@@ -68,7 +82,9 @@ DescriptorBuilder.prototype.replaceProperty = function (oldProperty, newProperty
   if (oldProperty.isBody) {
 
     if (!newProperty.isBody) {
-      throw new Error('property <' + newProperty.ns.name + '> must be body property ' + 'to refine <' + oldProperty.ns.name + '>');
+      throw new Error(
+        'property <' + newProperty.ns.name + '> must be body property ' +
+        'to refine <' + oldProperty.ns.name + '>');
     }
 
     // TODO: Check compatibility
@@ -95,13 +111,14 @@ DescriptorBuilder.prototype.replaceProperty = function (oldProperty, newProperty
   propertiesByName[oldNameNs.name] = propertiesByName[oldNameNs.localName] = newProperty;
 };
 
-DescriptorBuilder.prototype.redefineProperty = function (p, targetPropertyName, replace) {
+
+DescriptorBuilder.prototype.redefineProperty = function(p, targetPropertyName, replace) {
 
   var nsPrefix = p.ns.prefix;
   var parts = targetPropertyName.split('#');
 
-  var name = (0, _ns.parseName)(parts[0], nsPrefix);
-  var attrName = (0, _ns.parseName)(parts[1], name.prefix).name;
+  var name = parseNameNs(parts[0], nsPrefix);
+  var attrName = parseNameNs(parts[1], name.prefix).name;
 
   var redefinedProperty = this.propertiesByName[attrName];
   if (!redefinedProperty) {
@@ -113,7 +130,7 @@ DescriptorBuilder.prototype.redefineProperty = function (p, targetPropertyName, 
   delete p.redefines;
 };
 
-DescriptorBuilder.prototype.addNamedProperty = function (p, validate) {
+DescriptorBuilder.prototype.addNamedProperty = function(p, validate) {
   var ns = p.ns,
       propsByName = this.propertiesByName;
 
@@ -125,7 +142,7 @@ DescriptorBuilder.prototype.addNamedProperty = function (p, validate) {
   propsByName[ns.name] = propsByName[ns.localName] = p;
 };
 
-DescriptorBuilder.prototype.removeNamedProperty = function (p) {
+DescriptorBuilder.prototype.removeNamedProperty = function(p) {
   var ns = p.ns,
       propsByName = this.propertiesByName;
 
@@ -133,38 +150,45 @@ DescriptorBuilder.prototype.removeNamedProperty = function (p) {
   delete propsByName[ns.localName];
 };
 
-DescriptorBuilder.prototype.setBodyProperty = function (p, validate) {
+DescriptorBuilder.prototype.setBodyProperty = function(p, validate) {
 
   if (validate && this.bodyProperty) {
-    throw new Error('body property defined multiple times ' + '(<' + this.bodyProperty.ns.name + '>, <' + p.ns.name + '>)');
+    throw new Error(
+      'body property defined multiple times ' +
+      '(<' + this.bodyProperty.ns.name + '>, <' + p.ns.name + '>)');
   }
 
   this.bodyProperty = p;
 };
 
-DescriptorBuilder.prototype.setIdProperty = function (p, validate) {
+DescriptorBuilder.prototype.setIdProperty = function(p, validate) {
 
   if (validate && this.idProperty) {
-    throw new Error('id property defined multiple times ' + '(<' + this.idProperty.ns.name + '>, <' + p.ns.name + '>)');
+    throw new Error(
+      'id property defined multiple times ' +
+      '(<' + this.idProperty.ns.name + '>, <' + p.ns.name + '>)');
   }
 
   this.idProperty = p;
 };
 
-DescriptorBuilder.prototype.assertNotDefined = function (p, name) {
+DescriptorBuilder.prototype.assertNotDefined = function(p, name) {
   var propertyName = p.name,
       definedProperty = this.propertiesByName[propertyName];
 
   if (definedProperty) {
-    throw new Error('property <' + propertyName + '> already defined; ' + 'override of <' + definedProperty.definedBy.ns.name + '#' + definedProperty.ns.name + '> by ' + '<' + p.definedBy.ns.name + '#' + p.ns.name + '> not allowed without redefines');
+    throw new Error(
+      'property <' + propertyName + '> already defined; ' +
+      'override of <' + definedProperty.definedBy.ns.name + '#' + definedProperty.ns.name + '> by ' +
+      '<' + p.definedBy.ns.name + '#' + p.ns.name + '> not allowed without redefines');
   }
 };
 
-DescriptorBuilder.prototype.hasProperty = function (name) {
+DescriptorBuilder.prototype.hasProperty = function(name) {
   return this.propertiesByName[name];
 };
 
-DescriptorBuilder.prototype.addTrait = function (t, inherited) {
+DescriptorBuilder.prototype.addTrait = function(t, inherited) {
 
   var typesByName = this.allTypesByName,
       types = this.allTypes;
@@ -175,10 +199,10 @@ DescriptorBuilder.prototype.addTrait = function (t, inherited) {
     return;
   }
 
-  (0, _minDash.forEach)(t.properties, (0, _minDash.bind)(function (p) {
+  forEach(t.properties, bind(function(p) {
 
     // clone property to allow extensions
-    p = (0, _minDash.assign)({}, p, {
+    p = assign({}, p, {
       name: p.ns.localName,
       inherited: inherited
     });

@@ -1,17 +1,9 @@
-'use strict';
+import {
+  forEach,
+  bind
+} from 'min-dash';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = Factory;
-
-var _minDash = require('min-dash');
-
-var _base = require('./base');
-
-var _base2 = _interopRequireDefault(_base);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+import Base from './base';
 
 /**
  * A model element factory.
@@ -19,20 +11,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {Moddle} model
  * @param {Properties} properties
  */
-function Factory(model, properties) {
+export default function Factory(model, properties) {
   this.model = model;
   this.properties = properties;
 }
 
-Factory.prototype.createType = function (descriptor) {
+
+Factory.prototype.createType = function(descriptor) {
 
   var model = this.model;
 
   var props = this.properties,
-      prototype = Object.create(_base2.default.prototype);
+      prototype = Object.create(Base.prototype);
 
   // initialize default values
-  (0, _minDash.forEach)(descriptor.properties, function (p) {
+  forEach(descriptor.properties, function(p) {
     if (!p.isMany && p.default !== undefined) {
       prototype[p.name] = p.default;
     }
@@ -51,7 +44,7 @@ Factory.prototype.createType = function (descriptor) {
     props.define(this, '$attrs', { value: {} });
     props.define(this, '$parent', { writable: true });
 
-    (0, _minDash.forEach)(attrs, (0, _minDash.bind)(function (val, key) {
+    forEach(attrs, bind(function(val, key) {
       this.set(key, val);
     }, this));
   }

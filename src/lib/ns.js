@@ -1,9 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.parseName = parseName;
 /**
  * Parses a namespaced attribute name of the form (ns:)localName to an object,
  * given a default prefix to assume in case no explicit namespace is given.
@@ -13,23 +7,22 @@ exports.parseName = parseName;
  *
  * @return {Object} the parsed name
  */
-function parseName(name, defaultPrefix) {
+export function parseName(name, defaultPrefix) {
   var parts = name.split(/:/),
-      localName,
-      prefix;
+      localName, prefix;
 
   // no prefix (i.e. only local name)
   if (parts.length === 1) {
     localName = name;
     prefix = defaultPrefix;
   } else
-    // prefix + local name
-    if (parts.length === 2) {
-      localName = parts[1];
-      prefix = parts[0];
-    } else {
-      throw new Error('expected <prefix:localName> or <localName>, got ' + name);
-    }
+  // prefix + local name
+  if (parts.length === 2) {
+    localName = parts[1];
+    prefix = parts[0];
+  } else {
+    throw new Error('expected <prefix:localName> or <localName>, got ' + name);
+  }
 
   name = (prefix ? prefix + ':' : '') + localName;
 

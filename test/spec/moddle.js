@@ -1,293 +1,269 @@
-import expect from '../expect';
+'use strict';
 
-import {
-  createModelBuilder
-} from '../helper';
+var _expect = require('../expect');
 
+var _expect2 = _interopRequireDefault(_expect);
 
-describe('moddle', function() {
+var _helper = require('../helper');
 
-  var createModel = createModelBuilder('test/fixtures/model/');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-  describe('base', function() {
+describe('moddle', function () {
 
-    var model = createModel([ 'properties' ]);
+      var createModel = (0, _helper.createModelBuilder)('test/fixtures/model/');
 
+      describe('base', function () {
 
-    it('should provide types', function() {
+            var model = createModel(['properties']);
 
-      // when
-      var ComplexType = model.getType('props:Complex');
-      var SimpleBody = model.getType('props:SimpleBody');
-      var Attributes = model.getType('props:Attributes');
+            it('should provide types', function () {
 
-      // then
-      expect(ComplexType).to.exist;
-      expect(SimpleBody).to.exist;
-      expect(Attributes).to.exist;
-    });
+                  // when
+                  var ComplexType = model.getType('props:Complex');
+                  var SimpleBody = model.getType('props:SimpleBody');
+                  var Attributes = model.getType('props:Attributes');
 
+                  // then
+                  (0, _expect2.default)(ComplexType).to.exist;
+                  (0, _expect2.default)(SimpleBody).to.exist;
+                  (0, _expect2.default)(Attributes).to.exist;
+            });
 
-    it('should provide packages by prefix', function() {
+            it('should provide packages by prefix', function () {
 
-      // when
-      var propertiesPackage = model.getPackage('props');
+                  // when
+                  var propertiesPackage = model.getPackage('props');
 
-      // then
-      expect(propertiesPackage).to.exist;
-      expect(propertiesPackage.name).to.equal('Properties');
-      expect(propertiesPackage.uri).to.equal('http://properties');
-      expect(propertiesPackage.prefix).to.equal('props');
-    });
+                  // then
+                  (0, _expect2.default)(propertiesPackage).to.exist;
+                  (0, _expect2.default)(propertiesPackage.name).to.equal('Properties');
+                  (0, _expect2.default)(propertiesPackage.uri).to.equal('http://properties');
+                  (0, _expect2.default)(propertiesPackage.prefix).to.equal('props');
+            });
 
+            it('should provide packages by uri', function () {
 
-    it('should provide packages by uri', function() {
+                  // when
+                  var propertiesPackage = model.getPackage('http://properties');
 
-      // when
-      var propertiesPackage = model.getPackage('http://properties');
+                  // then
+                  (0, _expect2.default)(propertiesPackage).to.exist;
+                  (0, _expect2.default)(propertiesPackage.name).to.equal('Properties');
+                  (0, _expect2.default)(propertiesPackage.uri).to.equal('http://properties');
+                  (0, _expect2.default)(propertiesPackage.prefix).to.equal('props');
+            });
 
-      // then
-      expect(propertiesPackage).to.exist;
-      expect(propertiesPackage.name).to.equal('Properties');
-      expect(propertiesPackage.uri).to.equal('http://properties');
-      expect(propertiesPackage.prefix).to.equal('props');
-    });
+            it('should provide type descriptor', function () {
 
+                  // given
+                  var expectedDescriptorNs = { name: 'props:Complex', prefix: 'props', localName: 'Complex' };
 
-    it('should provide type descriptor', function() {
+                  var expectedDescriptorProperties = [{
+                        name: 'id',
+                        type: 'String',
+                        isAttr: true,
+                        isId: true,
+                        ns: { name: 'props:id', prefix: 'props', localName: 'id' },
+                        inherited: true
+                  }];
 
-      // given
-      var expectedDescriptorNs = { name: 'props:Complex', prefix: 'props', localName: 'Complex' };
+                  var expectedDescriptorPropertiesByName = {
 
-      var expectedDescriptorProperties = [
-        {
-          name: 'id',
-          type: 'String',
-          isAttr: true,
-          isId: true,
-          ns: { name: 'props:id', prefix: 'props', localName: 'id' },
-          inherited: true
-        }
-      ];
+                        'id': {
+                              name: 'id',
+                              type: 'String',
+                              isAttr: true,
+                              isId: true,
+                              ns: { name: 'props:id', prefix: 'props', localName: 'id' },
+                              inherited: true
+                        },
+                        'props:id': {
+                              name: 'id',
+                              type: 'String',
+                              isAttr: true,
+                              isId: true,
+                              ns: { name: 'props:id', prefix: 'props', localName: 'id' },
+                              inherited: true
+                        }
+                  };
 
-      var expectedDescriptorPropertiesByName = {
+                  // when
+                  var ComplexType = model.getType('props:Complex');
 
-        'id': {
-          name: 'id',
-          type: 'String',
-          isAttr: true,
-          isId: true,
-          ns: { name: 'props:id', prefix: 'props', localName: 'id' },
-          inherited: true
-        },
-        'props:id': {
-          name: 'id',
-          type: 'String',
-          isAttr: true,
-          isId: true,
-          ns: { name: 'props:id', prefix: 'props', localName: 'id' },
-          inherited: true
-        }
-      };
+                  var descriptor = model.getElementDescriptor(ComplexType);
 
-      // when
-      var ComplexType = model.getType('props:Complex');
+                  // then
+                  (0, _expect2.default)(descriptor).to.exist;
+                  (0, _expect2.default)(descriptor.name).to.equal('props:Complex');
 
-      var descriptor = model.getElementDescriptor(ComplexType);
+                  (0, _expect2.default)(descriptor.ns).to.jsonEqual(expectedDescriptorNs);
+                  (0, _expect2.default)(descriptor.properties).to.jsonEqual(expectedDescriptorProperties);
+                  (0, _expect2.default)(descriptor.propertiesByName).to.jsonEqual(expectedDescriptorPropertiesByName);
+            });
 
-      // then
-      expect(descriptor).to.exist;
-      expect(descriptor.name).to.equal('props:Complex');
+            it('should provide type descriptor via $descriptor property', function () {
 
-      expect(descriptor.ns).to.jsonEqual(expectedDescriptorNs);
-      expect(descriptor.properties).to.jsonEqual(expectedDescriptorProperties);
-      expect(descriptor.propertiesByName).to.jsonEqual(expectedDescriptorPropertiesByName);
-    });
+                  // given
+                  var ComplexType = model.getType('props:Complex');
+                  var expectedDescriptor = model.getElementDescriptor(ComplexType);
 
+                  // when
+                  var descriptor = ComplexType.$descriptor;
 
-    it('should provide type descriptor via $descriptor property', function() {
+                  // then
+                  (0, _expect2.default)(descriptor).to.equal(expectedDescriptor);
+            });
 
-      // given
-      var ComplexType = model.getType('props:Complex');
-      var expectedDescriptor = model.getElementDescriptor(ComplexType);
+            it('should provide model via $model property', function () {
 
-      // when
-      var descriptor = ComplexType.$descriptor;
+                  // given
+                  var ComplexType = model.getType('props:Complex');
 
-      // then
-      expect(descriptor).to.equal(expectedDescriptor);
-    });
+                  // when
+                  var foundModel = ComplexType.$model;
 
+                  // then
+                  (0, _expect2.default)(foundModel).to.equal(model);
+            });
 
-    it('should provide model via $model property', function() {
+            describe('create', function () {
 
-      // given
-      var ComplexType = model.getType('props:Complex');
+                  it('should provide meta-data', function () {
 
-      // when
-      var foundModel = ComplexType.$model;
+                        // when
+                        var instance = model.create('props:BaseWithNumericId');
 
-      // then
-      expect(foundModel).to.equal(model);
-    });
+                        // then
+                        (0, _expect2.default)(instance.$descriptor).to.exist;
+                        (0, _expect2.default)(instance.$type).to.equal('props:BaseWithNumericId');
+                  });
+            });
 
+            describe('createAny', function () {
 
-    describe('create', function() {
+                  it('should provide attrs + basic meta-data', function () {
 
-      it('should provide meta-data', function() {
+                        // when
+                        var anyInstance = model.createAny('other:Foo', 'http://other', {
+                              bar: 'BAR'
+                        });
 
-        // when
-        var instance = model.create('props:BaseWithNumericId');
+                        // then
+                        (0, _expect2.default)(anyInstance).to.jsonEqual({
+                              $type: 'other:Foo',
+                              bar: 'BAR'
+                        });
 
-        // then
-        expect(instance.$descriptor).to.exist;
-        expect(instance.$type).to.equal('props:BaseWithNumericId');
+                        (0, _expect2.default)(anyInstance.$instanceOf('other:Foo')).to.be.true;
+                  });
+
+                  it('should provide ns meta-data', function () {
+
+                        // when
+                        var anyInstance = model.createAny('other:Foo', 'http://other', {
+                              bar: 'BAR'
+                        });
+
+                        // then
+                        (0, _expect2.default)(anyInstance.$descriptor).to.jsonEqual({
+                              name: 'other:Foo',
+                              isGeneric: true,
+                              ns: { prefix: 'other', localName: 'Foo', uri: 'http://other' }
+                        });
+                  });
+            });
+
+            describe('getType', function () {
+
+                  it('should provide instantiatable type', function () {
+
+                        // when
+                        var SimpleBody = model.getType('props:SimpleBody');
+
+                        var instance = new SimpleBody({ body: 'BAR' });
+
+                        // then
+                        (0, _expect2.default)(instance instanceof SimpleBody).to.be.true;
+                        (0, _expect2.default)(instance.body).to.eql('BAR');
+                  });
+            });
+
+            describe('instance', function () {
+
+                  it('should query types via $instanceOf', function () {
+
+                        // given
+                        var instance = model.create('props:BaseWithNumericId');
+
+                        // then
+                        (0, _expect2.default)(instance.$instanceOf('props:BaseWithNumericId')).to.equal(true);
+                        (0, _expect2.default)(instance.$instanceOf('props:Base')).to.equal(true);
+                  });
+
+                  it('should provide $type in instance', function () {
+
+                        // given
+                        var SimpleBody = model.getType('props:SimpleBody');
+
+                        // when
+                        var instance = new SimpleBody();
+
+                        // then
+                        (0, _expect2.default)(instance.$type).to.equal('props:SimpleBody');
+                  });
+
+                  it('should provide $descriptor in instance', function () {
+
+                        // given
+                        var SimpleBody = model.getType('props:SimpleBody');
+
+                        // when
+                        var instance = new SimpleBody();
+
+                        // then
+                        (0, _expect2.default)(instance.$descriptor).to.eql(SimpleBody.$descriptor);
+                  });
+            });
+
+            describe('helpers', function () {
+
+                  it('should get property descriptor', function () {
+                        // given
+                        var SimpleBody = model.getType('props:SimpleBody');
+
+                        var instance = new SimpleBody();
+
+                        // when
+                        var body = model.getPropertyDescriptor(instance, 'props:body');
+
+                        // then
+                        (0, _expect2.default)(body).to.include.keys(['name', 'type', 'isBody', 'ns']);
+                  });
+
+                  it('should get type descriptor', function () {
+
+                        // when
+                        var simpleBody = model.getTypeDescriptor('props:SimpleBody');
+
+                        // then
+                        (0, _expect2.default)(simpleBody).to.include.keys(['name', 'superClass', 'properties']);
+                  });
+            });
       });
 
-    });
+      describe('error handling', function () {
 
+            it('should handle package redefinition', function () {
 
-    describe('createAny', function() {
+                  // given
+                  function create() {
 
-      it('should provide attrs + basic meta-data', function() {
+                        // when
+                        createModel(['properties', 'properties']);
+                  }
 
-        // when
-        var anyInstance = model.createAny('other:Foo', 'http://other', {
-          bar: 'BAR'
-        });
-
-        // then
-        expect(anyInstance).to.jsonEqual({
-          $type: 'other:Foo',
-          bar: 'BAR'
-        });
-
-        expect(anyInstance.$instanceOf('other:Foo')).to.be.true;
+                  // then
+                  (0, _expect2.default)(create).to.throw(/package with prefix <props> already defined/);
+            });
       });
-
-
-      it('should provide ns meta-data', function() {
-
-        // when
-        var anyInstance = model.createAny('other:Foo', 'http://other', {
-          bar: 'BAR'
-        });
-
-        // then
-        expect(anyInstance.$descriptor).to.jsonEqual({
-          name: 'other:Foo',
-          isGeneric: true,
-          ns: { prefix : 'other', localName : 'Foo', uri : 'http://other' }
-        });
-      });
-
-    });
-
-
-    describe('getType', function() {
-
-      it('should provide instantiatable type', function() {
-
-        // when
-        var SimpleBody = model.getType('props:SimpleBody');
-
-        var instance = new SimpleBody({ body: 'BAR' });
-
-        // then
-        expect(instance instanceof SimpleBody).to.be.true;
-        expect(instance.body).to.eql('BAR');
-      });
-
-    });
-
-
-    describe('instance', function() {
-
-      it('should query types via $instanceOf', function() {
-
-        // given
-        var instance = model.create('props:BaseWithNumericId');
-
-        // then
-        expect(instance.$instanceOf('props:BaseWithNumericId')).to.equal(true);
-        expect(instance.$instanceOf('props:Base')).to.equal(true);
-      });
-
-
-      it('should provide $type in instance', function() {
-
-        // given
-        var SimpleBody = model.getType('props:SimpleBody');
-
-        // when
-        var instance = new SimpleBody();
-
-        // then
-        expect(instance.$type).to.equal('props:SimpleBody');
-      });
-
-
-      it('should provide $descriptor in instance', function() {
-
-        // given
-        var SimpleBody = model.getType('props:SimpleBody');
-
-        // when
-        var instance = new SimpleBody();
-
-        // then
-        expect(instance.$descriptor).to.eql(SimpleBody.$descriptor);
-      });
-
-    });
-
-
-    describe('helpers', function() {
-
-      it('should get property descriptor', function() {
-        // given
-        var SimpleBody = model.getType('props:SimpleBody');
-
-        var instance = new SimpleBody();
-
-        // when
-        var body = model.getPropertyDescriptor(instance, 'props:body');
-
-        // then
-        expect(body).to.include.keys([ 'name', 'type', 'isBody', 'ns' ]);
-      });
-
-
-      it('should get type descriptor', function() {
-
-        // when
-        var simpleBody = model.getTypeDescriptor('props:SimpleBody');
-
-        // then
-        expect(simpleBody).to.include.keys([ 'name', 'superClass', 'properties' ]);
-      });
-
-    });
-
-  });
-
-
-  describe('error handling', function() {
-
-    it('should handle package redefinition', function() {
-
-      // given
-      function create() {
-
-        // when
-        createModel([ 'properties', 'properties' ]);
-      }
-
-      // then
-      expect(create).to.throw(/package with prefix <props> already defined/);
-
-    });
-
-  });
-
 });

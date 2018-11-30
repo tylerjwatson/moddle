@@ -1,27 +1,17 @@
-'use strict';
+import {
+  isString,
+  isObject,
+  forEach
+} from 'min-dash';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = Moddle;
+import Factory from './factory';
+import Registry from './registry';
+import Properties from './properties';
 
-var _minDash = require('min-dash');
+import {
+  parseName as parseNameNs
+} from './ns';
 
-var _factory = require('./factory');
-
-var _factory2 = _interopRequireDefault(_factory);
-
-var _registry = require('./registry');
-
-var _registry2 = _interopRequireDefault(_registry);
-
-var _properties = require('./properties');
-
-var _properties2 = _interopRequireDefault(_properties);
-
-var _ns = require('./ns');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 //// Moddle implementation /////////////////////////////////////////////////
 
@@ -46,15 +36,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  *
  * @param {Array<Package>} packages the packages to contain
  */
-function Moddle(packages) {
+export default function Moddle(packages) {
 
-  this.properties = new _properties2.default(this);
+  this.properties = new Properties(this);
 
-  this.factory = new _factory2.default(this, this.properties);
-  this.registry = new _registry2.default(packages, this.properties);
+  this.factory = new Factory(this, this.properties);
+  this.registry = new Registry(packages, this.properties);
 
   this.typeCache = {};
 }
+
 
 /**
  * Create an instance of the specified type.
@@ -70,7 +61,7 @@ function Moddle(packages) {
  * @param  {Object} attrs   a number of attributes to initialize the model instance with
  * @return {Object}         model instance
  */
-Moddle.prototype.create = function (descriptor, attrs) {
+Moddle.prototype.create = function(descriptor, attrs) {
   var Type = this.getType(descriptor);
 
   if (!Type) {
@@ -79,6 +70,7 @@ Moddle.prototype.create = function (descriptor, attrs) {
 
   return new Type(attrs);
 };
+
 
 /**
  * Returns the type representing a given descriptor
@@ -93,11 +85,11 @@ Moddle.prototype.create = function (descriptor, attrs) {
  * @param  {String|Object} descriptor the type descriptor or name know to the model
  * @return {Object}         the type representing the descriptor
  */
-Moddle.prototype.getType = function (descriptor) {
+Moddle.prototype.getType = function(descriptor) {
 
   var cache = this.typeCache;
 
-  var name = (0, _minDash.isString)(descriptor) ? descriptor : descriptor.ns.name;
+  var name = isString(descriptor) ? descriptor : descriptor.ns.name;
 
   var type = cache[name];
 
@@ -108,6 +100,7 @@ Moddle.prototype.getType = function (descriptor) {
 
   return type;
 };
+
 
 /**
  * Creates an any-element type to be used within model instances.
@@ -136,13 +129,13 @@ Moddle.prototype.getType = function (descriptor) {
  * @param  {Object} [properties] a map of properties to initialize the instance with
  * @return {Object} the any type instance
  */
-Moddle.prototype.createAny = function (name, nsUri, properties) {
+Moddle.prototype.createAny = function(name, nsUri, properties) {
 
-  var nameNs = (0, _ns.parseName)(name);
+  var nameNs = parseNameNs(name);
 
   var element = {
     $type: name,
-    $instanceOf: function (type) {
+    $instanceOf: function(type) {
       return type === this.$type;
     }
   };
@@ -161,8 +154,8 @@ Moddle.prototype.createAny = function (name, nsUri, properties) {
   this.properties.defineModel(element, this);
   this.properties.define(element, '$parent', { enumerable: false, writable: true });
 
-  (0, _minDash.forEach)(properties, function (a, key) {
-    if ((0, _minDash.isObject)(a) && a.value !== undefined) {
+  forEach(properties, function(a, key) {
+    if (isObject(a) && a.value !== undefined) {
       element[a.name] = a.value;
     } else {
       element[key] = a;
@@ -177,7 +170,7 @@ Moddle.prototype.createAny = function (name, nsUri, properties) {
  *
  * @return {Object} the package
  */
-Moddle.prototype.getPackage = function (uriOrPrefix) {
+Moddle.prototype.getPackage = function(uriOrPrefix) {
   return this.registry.getPackage(uriOrPrefix);
 };
 
@@ -186,14 +179,14 @@ Moddle.prototype.getPackage = function (uriOrPrefix) {
  *
  * @return {Object} the package
  */
-Moddle.prototype.getPackages = function () {
+Moddle.prototype.getPackages = function() {
   return this.registry.getPackages();
 };
 
 /**
  * Returns the descriptor for an element
  */
-Moddle.prototype.getElementDescriptor = function (element) {
+Moddle.prototype.getElementDescriptor = function(element) {
   return element.$descriptor;
 };
 
@@ -203,7 +196,7 @@ Moddle.prototype.getElementDescriptor = function (element) {
  *
  * May be applied to this, if element is omitted.
  */
-Moddle.prototype.hasType = function (element, type) {
+Moddle.prototype.hasType = function(element, type) {
   if (type === undefined) {
     type = element;
     element = this;
@@ -211,19 +204,19 @@ Moddle.prototype.hasType = function (element, type) {
 
   var descriptor = element.$model.getElementDescriptor(element);
 
-  return type in descriptor.allTypesByName;
+  return (type in descriptor.allTypesByName);
 };
 
 /**
  * Returns the descriptor of an elements named property
  */
-Moddle.prototype.getPropertyDescriptor = function (element, property) {
+Moddle.prototype.getPropertyDescriptor = function(element, property) {
   return this.getElementDescriptor(element).propertiesByName[property];
 };
 
 /**
  * Returns a mapped type's descriptor
  */
-Moddle.prototype.getTypeDescriptor = function (type) {
+Moddle.prototype.getTypeDescriptor = function(type) {
   return this.registry.typeMap[type];
 };

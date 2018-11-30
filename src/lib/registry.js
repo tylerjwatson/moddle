@@ -1,21 +1,19 @@
-'use strict';
+import {
+  assign,
+  forEach,
+  bind
+} from 'min-dash';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = Registry;
+import {
+  isBuiltIn as isBuiltInType
+} from './types';
 
-var _minDash = require('min-dash');
+import DescriptorBuilder from './descriptor-builder';
 
-var _types = require('./types');
+import {
+  parseName as parseNameNs
+} from './ns';
 
-var _descriptorBuilder = require('./descriptor-builder');
-
-var _descriptorBuilder2 = _interopRequireDefault(_descriptorBuilder);
-
-var _ns = require('./ns');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /**
  * A registry of Moddle packages.
@@ -23,7 +21,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @param {Array<Package>} packages
  * @param {Properties} properties
  */
-function Registry(packages, properties) {
+export default function Registry(packages, properties) {
   this.packageMap = {};
   this.typeMap = {};
 
@@ -31,21 +29,23 @@ function Registry(packages, properties) {
 
   this.properties = properties;
 
-  (0, _minDash.forEach)(packages, (0, _minDash.bind)(this.registerPackage, this));
+  forEach(packages, bind(this.registerPackage, this));
 }
 
-Registry.prototype.getPackage = function (uriOrPrefix) {
+
+Registry.prototype.getPackage = function(uriOrPrefix) {
   return this.packageMap[uriOrPrefix];
 };
 
-Registry.prototype.getPackages = function () {
+Registry.prototype.getPackages = function() {
   return this.packages;
 };
 
-Registry.prototype.registerPackage = function (pkg) {
+
+Registry.prototype.registerPackage = function(pkg) {
 
   // copy package
-  pkg = (0, _minDash.assign)({}, pkg);
+  pkg = assign({}, pkg);
 
   var pkgMap = this.packageMap;
 
@@ -53,7 +53,7 @@ Registry.prototype.registerPackage = function (pkg) {
   ensureAvailable(pkgMap, pkg, 'uri');
 
   // register types
-  (0, _minDash.forEach)(pkg.types, (0, _minDash.bind)(function (descriptor) {
+  forEach(pkg.types, bind(function(descriptor) {
     this.registerType(descriptor, pkg);
   }, this));
 
@@ -61,35 +61,36 @@ Registry.prototype.registerPackage = function (pkg) {
   this.packages.push(pkg);
 };
 
+
 /**
  * Register a type from a specific package with us
  */
-Registry.prototype.registerType = function (type, pkg) {
+Registry.prototype.registerType = function(type, pkg) {
 
-  type = (0, _minDash.assign)({}, type, {
+  type = assign({}, type, {
     superClass: (type.superClass || []).slice(),
     extends: (type.extends || []).slice(),
     properties: (type.properties || []).slice(),
-    meta: (0, _minDash.assign)(({}, type.meta || {}))
+    meta: assign(({}, type.meta || {}))
   });
 
-  var ns = (0, _ns.parseName)(type.name, pkg.prefix),
+  var ns = parseNameNs(type.name, pkg.prefix),
       name = ns.name,
       propertiesByName = {};
 
   // parse properties
-  (0, _minDash.forEach)(type.properties, (0, _minDash.bind)(function (p) {
+  forEach(type.properties, bind(function(p) {
 
     // namespace property names
-    var propertyNs = (0, _ns.parseName)(p.name, ns.prefix),
+    var propertyNs = parseNameNs(p.name, ns.prefix),
         propertyName = propertyNs.name;
 
     // namespace property types
-    if (!(0, _types.isBuiltIn)(p.type)) {
-      p.type = (0, _ns.parseName)(p.type, propertyNs.prefix).name;
+    if (!isBuiltInType(p.type)) {
+      p.type = parseNameNs(p.type, propertyNs.prefix).name;
     }
 
-    (0, _minDash.assign)(p, {
+    assign(p, {
       ns: propertyNs,
       name: propertyName
     });
@@ -98,13 +99,13 @@ Registry.prototype.registerType = function (type, pkg) {
   }, this));
 
   // update ns + name
-  (0, _minDash.assign)(type, {
+  assign(type, {
     ns: ns,
     name: name,
     propertiesByName: propertiesByName
   });
 
-  (0, _minDash.forEach)(type.extends, (0, _minDash.bind)(function (extendsName) {
+  forEach(type.extends, bind(function(extendsName) {
     var extended = this.typeMap[extendsName];
 
     extended.traits = extended.traits || [];
@@ -118,6 +119,7 @@ Registry.prototype.registerType = function (type, pkg) {
   this.typeMap[name] = type;
 };
 
+
 /**
  * Traverse the type hierarchy from bottom to top,
  * calling iterator with (type, inherited) for all elements in
@@ -127,9 +129,9 @@ Registry.prototype.registerType = function (type, pkg) {
  * @param {Function} iterator
  * @param {Boolean} [trait=false]
  */
-Registry.prototype.mapTypes = function (nsName, iterator, trait) {
+Registry.prototype.mapTypes = function(nsName, iterator, trait) {
 
-  var type = (0, _types.isBuiltIn)(nsName.name) ? { name: nsName.name } : this.typeMap[nsName.name];
+  var type = isBuiltInType(nsName.name) ? { name: nsName.name } : this.typeMap[nsName.name];
 
   var self = this;
 
@@ -149,7 +151,7 @@ Registry.prototype.mapTypes = function (nsName, iterator, trait) {
    * @param {Boolean} [trait=false]
    */
   function traverseSuper(cls, trait) {
-    var parentNs = (0, _ns.parseName)(cls, (0, _types.isBuiltIn)(cls) ? '' : nsName.prefix);
+    var parentNs = parseNameNs(cls, isBuiltInType(cls) ? '' : nsName.prefix);
     self.mapTypes(parentNs, iterator, trait);
   }
 
@@ -157,13 +159,14 @@ Registry.prototype.mapTypes = function (nsName, iterator, trait) {
     throw new Error('unknown type <' + nsName.name + '>');
   }
 
-  (0, _minDash.forEach)(type.superClass, trait ? traverseTrait : traverseSuper);
+  forEach(type.superClass, trait ? traverseTrait : traverseSuper);
 
   // call iterator with (type, inherited=!trait)
   iterator(type, !trait);
 
-  (0, _minDash.forEach)(type.traits, traverseTrait);
+  forEach(type.traits, traverseTrait);
 };
+
 
 /**
  * Returns the effective descriptor for a type.
@@ -172,13 +175,13 @@ Registry.prototype.mapTypes = function (nsName, iterator, trait) {
  *
  * @return {Descriptor} the resulting effective descriptor
  */
-Registry.prototype.getEffectiveDescriptor = function (name) {
+Registry.prototype.getEffectiveDescriptor = function(name) {
 
-  var nsName = (0, _ns.parseName)(name);
+  var nsName = parseNameNs(name);
 
-  var builder = new _descriptorBuilder2.default(nsName);
+  var builder = new DescriptorBuilder(nsName);
 
-  this.mapTypes(nsName, function (type, inherited) {
+  this.mapTypes(nsName, function(type, inherited) {
     builder.addTrait(type, inherited);
   });
 
@@ -190,9 +193,12 @@ Registry.prototype.getEffectiveDescriptor = function (name) {
   return descriptor;
 };
 
-Registry.prototype.definePackage = function (target, pkg) {
+
+Registry.prototype.definePackage = function(target, pkg) {
   this.properties.define(target, '$pkg', { value: pkg });
 };
+
+
 
 ///////// helpers ////////////////////////////
 

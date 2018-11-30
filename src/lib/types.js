@@ -1,11 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.coerceType = coerceType;
-exports.isBuiltIn = isBuiltIn;
-exports.isSimple = isSimple;
 /**
  * Built-in moddle types
  */
@@ -21,24 +13,16 @@ var BUILTINS = {
  * Converters for built in types from string representations
  */
 var TYPE_CONVERTERS = {
-  String: function (s) {
-    return s;
-  },
-  Boolean: function (s) {
-    return s === 'true';
-  },
-  Integer: function (s) {
-    return parseInt(s, 10);
-  },
-  Real: function (s) {
-    return parseFloat(s, 10);
-  }
+  String: function(s) { return s; },
+  Boolean: function(s) { return s === 'true'; },
+  Integer: function(s) { return parseInt(s, 10); },
+  Real: function(s) { return parseFloat(s, 10); }
 };
 
 /**
  * Convert a type to its real representation
  */
-function coerceType(type, value) {
+export function coerceType(type, value) {
 
   var converter = TYPE_CONVERTERS[type];
 
@@ -52,13 +36,13 @@ function coerceType(type, value) {
 /**
  * Return whether the given type is built-in
  */
-function isBuiltIn(type) {
+export function isBuiltIn(type) {
   return !!BUILTINS[type];
 }
 
 /**
  * Return whether the given type is simple
  */
-function isSimple(type) {
+export function isSimple(type) {
   return !!TYPE_CONVERTERS[type];
 }
